@@ -1,4 +1,4 @@
-LESSON1:
+***LESSON 1***
 1) \set PROMPT1 '%n:%~%R%#' - устанавливает переменную для отображение user:db(~)
 2) \t - отключает вывод имён столбцов и результирующей строки с количеством выбранных записей.
 3) \a - выравнивание таблиц
@@ -6,8 +6,10 @@ LESSON1:
 5) \gset - запись вывода в переменную
 6) \dt - вывод таблиц всех схем
 7) \dnS - вывод списка всех схем и их создателей
+8) \db - вывод табличных пространств
+9) \d - вывод описание таблицы
 
-LESSON2:
+***LESSON 2***
 SELECT * FROM pg_file_settings - показывает содержимое конфига, реальные значения могут отличаться
 
 SELECT setting FROM pg_settings - показывает значения всех параметров
@@ -28,7 +30,7 @@ SET - установка параметров во время сеанта
 
 current_setting(name) - вывод значения параметра
 
-LESSON 3:
+***LESSON 3***
 Транзакции работаю со снимками.
 Read committed является уровнем изоляции по умолчанию в
 PostgreSQL. На этом уровне снимок данных строится в начале
@@ -48,11 +50,11 @@ Serializable гарантирует полную изоляцию: можно п
 xmin - код транзакции, добавившей строку этой версии
 xmax - код транзацкии, удалившей строку этой версии\
 
-LESSON 4:
+***LESSON 4***
 Журнал предзаписи - попадает запись при изменении в БД,данные записываются не физ. на диск, а в буфер, для восстановления согласованности данных.
 pg_wal - содержит журналы предзаписи для восстановления
 
-LESSON 5:
+***LESSON 5***
 SELECT datname FROM pg_database; (\l) - вывод БД кластера
 postgres - инициализируется при первом запуске СУБД
 template1 - шаблон, из которого создаются последующие БД
@@ -70,3 +72,59 @@ $user - схема с тем же именем, что и им тек.польз
 SELECT current_schemas(true) - явно показывает какие схемы будут задействованы
 
 ALTER TABLE t SET SCHEMA special - перемещение таблицы в другую схему
+
+***LESSON 6***
+SELECT spcname FROM pg_tablespace - просмотр табличных пространств
+CREATE TABLESPACE ts LOCATION '/path/' - создание табличного пространства
+CREATE DATABASE test TABLESPACE ts - указываем табличное пространство по умолчанию при создании БД
+SELECT pg_relation_filepath('name') - показывает расположение файлов, относящихся к объекту
+
+***LESSON 7***
+CREATE DATABASE bookstore - создание БД bookstore
+CREATE SCHEMA bookstore - создание схемы bookstore
+SET search_path = bookstore, public - установка пути поиска
+CREATE TABLE books(book_id SERIAL PRIMARY KEY, title TEXT) - создание таблицы books
+CREATE TABLE authors(
+    author_id SERIAL PRIMARY KEY,
+    last_name text,
+    first_name text,
+    middle_name text
+) - создание таблицы авторов
+CREATE TABLE authorship
+(
+    book_id   integer REFERENCES books,
+    author_id integer REFERENCES authors,
+    seq_num   integer,
+    PRIMARY KEY (book_id,author_id)
+) - создание таблицы авторство
+CREATE TABLE operations(
+    operation_id SERIAL PRIMARY KEY,
+    book_id INTEGER NOT NULL REFERENCES books,
+    qty_change INTEGER,
+    date_created DATE DEFAULT now()
+) - создание таблицы с операциями
+
+INSERT INTO authors(last_name, first_name, middle_name)
+VALUES ('Николаевич', 'Толстой', 'Лев');
+INSERT INTO authors(last_name, first_name, middle_name)
+VALUES ('Сергеевич', 'Пушки', 'Александр');
+INSERT INTO authors(last_name, first_name, middle_name)
+VALUES ('Юрьевич', 'Лермонтов', 'Михаил');
+
+INSERT INTO books(title)
+VALUES ('Живой труп');
+INSERT INTO books(title)
+VALUES ('Евгений Онегин');
+INSERT INTO books(title)
+VALUES ('Маскарад');
+
+INSERT INTO authorship(book_id, author_id, seq_num)
+VALUES (1, 1, 1);
+INSERT INTO authorship(book_id, author_id, seq_num)
+VALUES (2, 2, 1);
+INSERT INTO authorship(book_id, author_id, seq_num)
+VALUES (3, 3, 1);
+
+INSERT INTO operations(book_id, qty_change) VALUES (1, 10);
+INSERT INTO operations(book_id, qty_change) VALUES (2, 0);
+INSERT INTO operations(book_id, qty_change) VALUES (3, -7);
