@@ -8,7 +8,7 @@
 7) \dnS - вывод списка всех схем и их создателей
 8) \db - вывод табличных пространств
 9) \d - вывод описание таблицы
-
+10) \x - вывод списка всех подготовленных операций в представлении
 ***LESSON 2***
 SELECT * FROM pg_file_settings - показывает содержимое конфига, реальные значения могут отличаться
 
@@ -128,3 +128,30 @@ VALUES (3, 3, 1);
 INSERT INTO operations(book_id, qty_change) VALUES (1, 10);
 INSERT INTO operations(book_id, qty_change) VALUES (2, 0);
 INSERT INTO operations(book_id, qty_change) VALUES (3, -7);
+
+***LESSON 8***
+PREPARE name_func(text) AS SELECT * FROM authors WHERE last_name = $1 - подготовленная операция
+DECLARE name_cursor CURSOR FOR SELECT * FROM authors - объявления курсора
+FETCH name_cursor - получение данных построчно
+FETCH 2 name_cursor - указываем размер выборки
+CLOSE name_cursor - закрытие курсора
+
+CREATE VIEW authors_v AS
+SELECT a.author_id,
+       a.first_name || ' ' ||
+       a.last_name ||
+       coalesce(' ' || nullif(a.middle_name, ''), '') AS display_name
+FROM authors a - создание представление для выборки авторов
+
+CREATE VIEW catalog_v AS
+SELECT b.book_id,
+       b.title AS display_name
+FROM books b - создание представление для каталога книг
+
+CREATE VIEW operations_v AS
+SELECT book_id,
+       CASE WHEN qty_change > 0 THEN 'Поступление' ELSE 'Покупка' END op_type,
+       abs(qty_change)                                                qty_change,
+       to_char(date_created, 'DD.MM.YYYY')                            date_created
+FROM operations
+ORDER BY operation_id - создание представления для операций над книгами
