@@ -155,3 +155,43 @@ SELECT book_id,
        to_char(date_created, 'DD.MM.YYYY')                            date_created
 FROM operations
 ORDER BY operation_id - создание представления для операций над книгами
+
+***LESSON 9***
+Категории изменчивости:
+Volatile - возвращаемое значение может меняться при одинаковых входных параметров
+Stable - значение не меняется в пределах одного оператора SQL, функция не может менять состояние БД
+Immutable - значение не меняется, функция детерминирована, не может менять состояние БД
+
+CREATE FUNCTION fill() RETURNS void AS $$
+INSERT INTO t
+    SELECT random() FROM generate_series(1,3);
+$$ LANGUAGE SQL; - создание таблицы без входных параметров
+
+CREATE OR REPLACE FUNCTION fill() RETURNS bigint AS $$
+INSERT INTO t
+    SELECT random() FROM generate_series(1,3);
+SELECT count(*) FROM t;
+$$ LANGUAGE SQL; - возвращаемое значение через RETURNS
+
+Менять логику внутри функции можно без удаления самой функции, если меняется сигнатура функции, то удаление обязательно
+
+IN - входной параметр
+OUT - выходной параметр
+INOUT - входной/выходной параметр
+
+Существуют перегруженные функции
+CREATE FUNCTION maximum(a integer, b integer) RETURNS integer AS
+CREATE FUNCTION maximum(a integer, b integer, c integer) RETURNS integer AS
+
+Так же, существуют полиморфные функции
+CREATE FUNCTION maximum(a anyelement, b anyelement) RETURNS anyelement AS
+Но, при вызове нужно обязательное приведение к типам maximum(a:text, b:text)
+
+Значение по умолчанию для параметров
+CREATE FUNCTION maximum(a anyelement, b anyelement, c anyelement default null)
+RETURNS anyelement AS
+
+Можно менять категории изменчивости и изоляции
+CREATE FUNCTION cnt() RETURNS bigint AS $$
+SELECT count(*) FROM t;
+$$ VOLATILE(STABLE | IMMUTABLE) LANGUAGE SQL;
