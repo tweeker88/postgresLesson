@@ -9,6 +9,7 @@
 8) \db - вывод табличных пространств
 9) \d - вывод описание таблицы
 10) \x - вывод списка всех подготовленных операций в представлении
+11) \dT - вывод составных типов
 ***LESSON 2***
 SELECT * FROM pg_file_settings - показывает содержимое конфига, реальные значения могут отличаться
 
@@ -222,3 +223,36 @@ SELECT b.book_id,
        book_name(b.book_id, b.title) AS display_name
 FROM   books b
 ORDER BY display_name; - создания отображения книг
+
+***LESSON 10***
+CREATE TYPE currency AS (
+    amount numeric,
+    code   text
+); - создание составного типа
+
+Значения составного типа можно формировать либо в виде строки, внутри которой в скобках перечислены значения:
+=> INSERT INTO transactions VALUES(1, NULL, '(100.00,"RUR")');
+
+Либо с помощью табличного конструктора ROW:
+=> INSERT INTO transactions VALUES(2, ROW(80.00,'RUR'), NULL);
+
+Если составной тип содержит более одного поля, то слово ROW можно опустить:
+=> INSERT INTO transactions VALUES(3, (20.00,'RUR'), NULL);
+
+Чтобы обратиться к отдельному атрибуту, составное значение необходимо взять в скобки, чтобы отличать атрибут записи от столбца таблицы:
+=> SELECT (t.debit).amount, (t.credit).amount FROM transactions t;
+
+CREATE OPERATOR * (
+    PROCEDURE = multyply,
+    LEFTARG  = numeric,
+    RIGHTARG = currency
+    ); - создание оператора умножения
+
+SELECT * FROM pg_type; - вывод всех типов
+
+
+
+=> CREATE FUNCTION func_name()
+RETURNS SETOF seats AS $$$$ IMMUTABLE LANGUAGE SQL; - Ключевое отличие - слово SETOF. В таком случае функция возвращает не первую строку последнего запроса, как обычно, а все строки последнего запроса.
+CREATE FUNCTION func_name() RETURNS TABLE() AS $$$$ LANGUAGE SQL; - равнозначный споособ объявления табличного вывода - указать слово TABLE
+WITH ORDINALITY - пронумеровать строки в том порядке, в котором они получены при выборке
