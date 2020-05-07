@@ -10,6 +10,7 @@
 9) \d - вывод описание таблицы
 10) \x - вывод списка всех подготовленных операций в представлении
 11) \dT - вывод составных типов
+12) \dL - вывод установленных языков
 ***LESSON 2***
 SELECT * FROM pg_file_settings - показывает содержимое конфига, реальные значения могут отличаться
 
@@ -250,9 +251,45 @@ CREATE OPERATOR * (
 
 SELECT * FROM pg_type; - вывод всех типов
 
-
-
 => CREATE FUNCTION func_name()
 RETURNS SETOF seats AS $$$$ IMMUTABLE LANGUAGE SQL; - Ключевое отличие - слово SETOF. В таком случае функция возвращает не первую строку последнего запроса, как обычно, а все строки последнего запроса.
 CREATE FUNCTION func_name() RETURNS TABLE() AS $$$$ LANGUAGE SQL; - равнозначный споособ объявления табличного вывода - указать слово TABLE
 WITH ORDINALITY - пронумеровать строки в том порядке, в котором они получены при выборке
+
+***LESSON 11***
+CREATE EXTENSION - установка расширения
+DO 'BEGIN END;'; - анонимный блок
+
+CREATE FUNCTION fmt_out_2 (IN phone text, OUT code text, OUT num text)
+-- RETURNS можно не писать, предполагается RETURNS record
+AS $$
+BEGIN
+    IF phone ~ '^[0-9]*$' AND length(phone) = 10 THEN
+        code := substr(phone,1,3);
+        num  := substr(phone,4);
+    ELSE
+        code := NULL;
+        num  := NULL;
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE; - условный оператор IF
+
+DO $$
+DECLARE
+    code text := (fmt_out_2('8122128506')).code;
+BEGIN
+    CASE code
+    WHEN '495', '499' THEN
+        RAISE NOTICE '% - Москва', code;
+    WHEN '812' THEN
+        RAISE NOTICE '% - Санкт-Петербург', code;
+    WHEN '384' THEN
+        RAISE NOTICE '% - Кемеровская область', code;
+    ELSE
+        RAISE NOTICE '% - Прочие', code;
+    END CASE;
+END; - условный оператор CASE
+
+FOR i IN 1 .. line_length LOOP
+    retval := substr(line, i,1) || retval;
+END LOOP; - цикл FOR
