@@ -293,3 +293,27 @@ END; - условный оператор CASE
 FOR i IN 1 .. line_length LOOP
     retval := substr(line, i,1) || retval;
 END LOOP; - цикл FOR
+
+***LESSON 12***
+Чтобы в результате выборки получилась ровно одна строка: ни больше, ни меньше. В этом случае удобно воспользоваться фразой INTO STRICT
+=> DO $$
+DECLARE
+    r record;
+BEGIN
+    SELECT id, code INTO STRICT r FROM t;
+    RAISE NOTICE '%', r;
+END;
+$$;
+
+Если результат запроса не нужен, можно не использовать фиктивные переменные, а заменить SELECT на PERFORM.
+=> CREATE FUNCTION do_something() RETURNS void AS $$
+BEGIN
+    RAISE NOTICE 'Что-то сделалось.';
+END;
+$$ LANGUAGE plpgsql;
+CREATE FUNCTION
+=> DO $$
+BEGIN
+    PERFORM do_something();
+END;
+$$;
