@@ -317,3 +317,55 @@ BEGIN
     PERFORM do_something();
 END;
 $$;
+
+***LESSON 13***
+
+Несвязанная переменная cur:
+=> DO $$
+DECLARE
+    -- объявление переменной
+    cur refcursor;
+BEGIN
+    -- связывание с запросом и открытие курсора
+    OPEN cur FOR SELECT * FROM t;
+END;
+$$;
+
+Связанная переменная связывается с запросом уже при объявлении.
+=> DO $$
+DECLARE
+    -- объявление и связывание переменной
+    cur CURSOR FOR SELECT * FROM t;
+BEGIN
+    -- открытие курсора
+    OPEN cur;
+END;
+$$;
+DO
+
+Связанная переменная может иметь параметры:
+=> DO $$
+DECLARE
+    -- объявление и связывание переменной
+    cur CURSOR(id integer) FOR SELECT * FROM t WHERE t.id = cur.id;
+BEGIN
+    -- открытие курсора с указанием фактических параметров
+    OPEN cur(1);
+END;
+$$;
+DO
+
+Чтение выполняется командой FETCH. Если нужно только сдвинуть "окно" курсора, то можно воспользоваться другой командой - MOVE.
+=> DO $$
+DECLARE
+    cur refcursor;
+    rec record;
+BEGIN
+    OPEN cur FOR SELECT * FROM t ORDER BY id;
+    MOVE cur;
+    FETCH cur INTO rec;
+    RAISE NOTICE '%', rec;
+    CLOSE cur;
+END;
+$$;
+
