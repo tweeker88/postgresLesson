@@ -319,7 +319,6 @@ END;
 $$;
 
 ***LESSON 13***
-
 Несвязанная переменная cur:
 => DO $$
 DECLARE
@@ -368,4 +367,9 @@ BEGIN
     CLOSE cur;
 END;
 $$;
+
+***LESSON 15***
+Объявление массивов - integer[]
+Вставка массивов - ARRAY[10,20,30] или '{10,20,30}'
+CREATE FUNCTION func_name(VARIADIC a anyarray, maxsofar OUT anyelement) - создание функции с беск.числом входных данных
 
